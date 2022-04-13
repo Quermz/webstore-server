@@ -26,7 +26,7 @@
     try {
       products.value = await axios({
         method: "get",
-        url: "http://localhost:5000/api/products/",
+        url: "https://cowebstore.herokuapp.com/api/products/",
       });
       products.value = products.value.data;
       console.log(products.value);
@@ -57,6 +57,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: auto;
+    align-items: center;
     gap: 1rem;
   }
 

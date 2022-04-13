@@ -27,7 +27,7 @@
     try {
       product.value = await axios({
         method: "post",
-        url: "http://localhost:5000/api/products/single",
+        url: "https://cowebstore.herokuapp.com/api/products/single",
         data: {
           id: route.params.id,
         },
@@ -77,7 +77,7 @@
     align-items: center;
   }
   .productContainer {
-    width: 1200px;
+    max-width: 1200px;
     padding: 1rem;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;

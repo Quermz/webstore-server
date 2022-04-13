@@ -45,7 +45,7 @@
         console.log(store.state.userId);
         let response = await axios({
           method: "put",
-          url: `http://localhost:5000/api/orders/${store.state.userId}`,
+          url: `https://cowebstore.herokuapp.com/api/orders/${store.state.userId}`,
           data: {
             addressLineOne: addressLineOne.value,
             addressLineTwo: addressLineTwo.value,

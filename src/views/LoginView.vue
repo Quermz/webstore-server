@@ -6,6 +6,9 @@
       <input type="text" v-model="username" placeholder="Username.." />
       <input type="text" v-model="password" placeholder="Password.." />
       <button @click="login">Submit</button>
+      <div class="issueBox" v-if="userNotFound">
+        Users details could not be found!
+      </div>
       <div class="issueBox" v-if="loginIssue">
         There was an issue with your login details!
       </div>
@@ -26,19 +29,20 @@
   let username = ref("");
   let password = ref("");
   let loginIssue = ref(false);
+  let userNotFound = ref(false);
   async function login() {
     try {
       let response = await axios({
         method: "post",
-        url: "http://localhost:5000/api/auth/login",
+        url: "https://cowebstore.herokuapp.com/api/auth/login",
         data: {
           username: username.value,
           email: email.value,
           password: password.value,
         },
       });
-      console.log("ok");
-      console.log(response);
+
+      console.log(response.status);
       store.commit("setJsonToken", response.data.accessToken);
       store.commit("setUserId", response.data.user._id);
       store.commit("setUsername", response.data.user.username);
@@ -46,6 +50,9 @@
       store.commit("setBasket", response.data.cart.products);
       router.push("/");
     } catch (e) {
+      if (e.response.status == 401) {
+        userNotFound.value = true;
+      }
       loginIssue.value = true;
       console.log(e);
     }

@@ -2,7 +2,7 @@
   <div class="footerPageContainer">
     <div class="footerContainer">
       <p>Created by Alex Cowls</p>
-      <a href="">
+      <a href="https://github.com/Quermz/vue-webstore">
         <i class="fa-brands fa-github"></i>
       </a>
     </div>

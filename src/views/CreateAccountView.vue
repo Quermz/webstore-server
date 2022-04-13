@@ -36,7 +36,7 @@
       try {
         let response = await axios({
           method: "post",
-          url: "http://localhost:5000/api/auth/register",
+          url: "https://cowebstore.herokuapp.com/api/auth/register",
           data: {
             username: username.value,
             email: email.value,

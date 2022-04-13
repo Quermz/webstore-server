@@ -39,7 +39,7 @@
         let returnBasket = { data: { products: "none" } };
         returnBasket = await axios({
           method: "put",
-          url: `http://localhost:5000/api/cart/${store.state.userId}`,
+          url: `https://cowebstore.herokuapp.com/${store.state.userId}`,
           data: {
             products: store.state.basket,
           },
