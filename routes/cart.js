@@ -1,20 +1,19 @@
-const { verifyTokenAndAuth } = require("./verifyToken");
+const { verifyToken } = require("./verifyToken");
 
 const Cart = require("../models/Cart");
 
 const router = require("express").Router();
 
-//Create or update cart
-router.put("/:id", verifyTokenAndAuth, async (req, res) => {
+//Update cart
+router.put("/updateCart", verifyToken, async (req, res) => {
   try {
     const updatedCart = await Cart.findOneAndUpdate(
-      { userId: req.params.id },
+      { userId: req.headers.userid },
       {
         products: req.body.products,
       },
       { new: true }
     );
-
     res.status(200).json({ updatedCart });
   } catch (err) {
     console.log(err);
@@ -23,9 +22,9 @@ router.put("/:id", verifyTokenAndAuth, async (req, res) => {
 });
 
 //Get cart
-router.get("/:id", verifyTokenAndAuth, async (req, res) => {
+router.get("/getCart", verifyToken, async (req, res) => {
   try {
-    const getCart = await Cart.findOne({ userId: req.params.id });
+    const getCart = await Cart.findOne({ userId: req.headers.userid });
     res.status(200).json(getCart);
   } catch (err) {
     res.status(500).json(err);
