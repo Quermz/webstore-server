@@ -1,31 +1,30 @@
 const router = require("express").Router();
 const User = require("../models/User");
 const Cart = require("../models/Cart");
-const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
+const { verifyToken } = require("./verifyToken");
+
 dotenv.config();
 
 //Register new user
 router.post("/register", async (req, res) => {
-  const newUser = new User({
-    username: req.body.username,
-    email: req.body.email,
-    password: CryptoJS.AES.encrypt(
-      req.body.password,
-      process.env.PASS_VALUE
-    ).toString(),
-  });
-
   try {
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const newUser = new User({
+      username: req.body.username,
+      email: req.body.email,
+      password: hashedPassword,
+    });
     savedUser = await newUser.save();
-    console.log(savedUser);
     const newCart = new Cart({
       userId: savedUser._id,
     });
     savedCart = await newCart.save();
     res.status(201).json({ savedUser, savedCart });
   } catch (err) {
+    console.log(err);
     res.status(500).json(err);
   }
 });
@@ -34,35 +33,35 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.body.username });
-    if (!user) {
-      res.status(401).json("Incorrect Login Details");
-    }
     const cart = await Cart.findOne({ userId: user._id });
+    const validPassword = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
 
-    const unhashedPassword = CryptoJS.AES.decrypt(
-      user.password,
-      process.env.PASS_VALUE
-    ).toString(CryptoJS.enc.Utf8);
-
-    if (unhashedPassword !== req.body.password) {
-      res.status(401).json("Wrong Password");
-    } else {
-      delete user._doc.password;
-      const accessToken = jwt.sign(
-        {
-          id: user._id,
-        },
-        process.env.JWT_KEY
-      );
-      console.log(user);
-      res.status(200).json({ user, cart, accessToken });
-    }
+    delete user._doc.password;
+    const accessToken = jwt.sign(
+      {
+        id: user._id,
+      },
+      process.env.JWT_KEY,
+      { expiresIn: "2h" }
+    );
+    res.status(200).json({ user, cart, accessToken });
   } catch (err) {
-    console.log(err);
     res.status(500).json("error logging in");
   }
 });
 
-// Validate token
+// RefreshLogin
+router.post("/refreshLogin", verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.headers.userid);
+    const cart = await Cart.findOne({ userId: req.headers.userid });
+    res.status(200).json({ user, cart });
+  } catch (err) {
+    res.status(500);
+  }
+});
 
 module.exports = router;

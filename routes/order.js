@@ -1,4 +1,4 @@
-const { verifyTokenAndAuth } = require("./verifyToken");
+const { verifyToken } = require("./verifyToken");
 
 const Cart = require("../models/Cart");
 
@@ -6,19 +6,28 @@ const Order = require("../models/Order");
 
 const router = require("express").Router();
 
-//Create order
-router.put("/:id", verifyTokenAndAuth, async (req, res) => {
+// Get Orders
+router.get("/getOrders", verifyToken, async (req, res) => {
   try {
-    const findCart = await Cart.findOne({ userId: req.params.id });
-    console.log(findCart);
+    const orders = await Order.find({ userId: req.headers.userid });
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json();
+  }
+});
+
+//Create order
+router.post("/createOrder", verifyToken, async (req, res) => {
+  try {
+    const findCart = await Cart.findOne({ userId: req.headers.userid });
+
     const newOrder = new Order({
-      userId: req.params.id,
+      userId: req.headers.userid,
       products: findCart.products,
       addressLineOne: req.body.addressLineOne,
       addressLineTwo: req.body.addressLineTwo,
       postCode: req.body.postCode,
     });
-
     await newOrder.save();
     const updatedCart = await Cart.findOneAndUpdate(
       { userId: req.params.id },
@@ -32,7 +41,7 @@ router.put("/:id", verifyTokenAndAuth, async (req, res) => {
 });
 
 //Create anonymous order
-router.put("/", async (req, res) => {
+router.post("/createAnonOrder", async (req, res) => {
   try {
     const newOrder = new Order({
       products: req.body.products,
@@ -40,11 +49,9 @@ router.put("/", async (req, res) => {
       addressLineTwo: req.body.addressLineTwo,
       postCode: req.body.postCode,
     });
-    console.log(newOrder);
     await newOrder.save();
-    res.status(200).json("ok");
+    res.status(200);
   } catch (err) {
-    console.log(err);
     res.status(500).json();
   }
 });
