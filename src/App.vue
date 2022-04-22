@@ -1,7 +1,7 @@
 <template>
   <div class="pageContainer">
     <NavBar />
-    <div class="innerAppContainer">
+    <div class="innerAppContainer" v-if="!loading">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
@@ -15,11 +15,23 @@
 <script setup>
   import FooterView from "./components/FooterView.vue";
   import NavBar from "./components/NavBar.vue";
+  import { onMounted, ref } from "vue";
+  import { useStore } from "vuex";
+  const loading = ref(true);
+  const store = useStore();
+  onMounted(async () => {
+    if (sessionStorage.getItem("userid")) {
+      await store.dispatch("refreshLogin");
+      loading.value = false;
+    } else {
+      loading.value = false;
+    }
+  });
 </script>
 
 <style>
   * {
-    font-family: "Source Sans Pro", sans-serif;
+    font-family: "DM Sans", sans-serif;
     box-sizing: border-box;
     margin: 0px;
   }
@@ -35,5 +47,9 @@
   .fade-enter-from,
   .fade-leave-to {
     opacity: 0;
+  }
+
+  a {
+    color: inherit;
   }
 </style>

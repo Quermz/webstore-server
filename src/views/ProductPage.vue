@@ -1,71 +1,60 @@
 <template>
   <div class="productPageContainer">
-    <div class="productContainer">
+    <div class="productContainer" v-if="!loading">
       <div class="productImageContainer">
         <img :src="product.img" alt="" class="productImage" />
       </div>
       <h2 class="productTitle">{{ product.title }}</h2>
       <p class="productDescription">{{ product.description }}</p>
       <h4 class="productPrice">£{{ product.price }}</h4>
-      <button @click="addProduct" class="addToBasket">Add To Basket</button>
+      <button @click="addProduct" class="addToBasket" v-if="!loadingAdd">
+        Add To Cart
+      </button>
+      <div class="loaderContainer" v-if="loadingAdd">
+        <div class="loader"></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref } from "vue";
-  import axios from "axios";
+  import { onMounted, ref, computed } from "vue";
+
   import { useRoute } from "vue-router";
   import { useStore } from "vuex";
 
   const store = useStore();
-
-  let product = ref();
   const route = useRoute();
-  async function retrieveProduct() {
-    console.log(route.params.id);
-    try {
-      product.value = await axios({
-        method: "post",
-        url: "https://cowebstore.herokuapp.com/api/products/single",
-        data: {
-          id: route.params.id,
-        },
-      });
-      product.value = product.value.data;
-      console.log(product.value);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  retrieveProduct();
+  const loading = ref("true");
+  const product = computed(() => {
+    return store.getters.getProduct;
+  });
+  onMounted(async () => {
+    await store.dispatch("fetchProduct", route.params.id);
+    loading.value = false;
+  });
+
+  const loadingAdd = ref(false);
 
   async function addProduct() {
-    store.commit("addToBasket", {
-      productId: product.value.productId,
-      title: product.value.title,
-      img: product.value.img,
-      price: product.value.price,
-    });
     if (store.state.loggedIn) {
-      let returnBasket = { data: { products: "none" } };
-      try {
-        console.log(store.state.basket);
-        returnBasket = await axios({
-          method: "put",
-          url: `http://localhost:5000/api/cart/${store.state.userId}`,
-          data: {
-            products: store.state.basket,
-          },
-          headers: {
-            token: `${store.state.jsonToken}`,
-          },
-        });
-        console.log(returnBasket);
-        store.commit("setBasket", returnBasket.data.updatedCart.products);
-      } catch (err) {
-        console.log(err);
-      }
+      loadingAdd.value = true;
+      await store.dispatch("addToCart", product);
+      setTimeout(() => {
+        loadingAdd.value = false;
+      }, 250);
+    }
+    if (!store.state.loggedIn) {
+      loadingAdd.value = true;
+      store.commit("addItemToCart", {
+        productId: product.value.productId,
+        title: product.value.title,
+        img: product.value.img,
+        price: product.value.price,
+      });
+      setTimeout(() => {
+        loadingAdd.value = false;
+      }, 250);
     }
   }
 </script>
@@ -98,6 +87,7 @@
     grid-area: img;
   }
   .productImage {
+    width: 500px;
     max-width: 100%;
   }
 
@@ -115,23 +105,58 @@
 
   .productPrice {
     grid-area: price;
+    align-self: center;
   }
 
   .addToBasket {
+    height: 2rem;
     width: 15rem;
     grid-area: button;
     justify-self: end;
+    background: inherit;
+    font-weight: 600;
+    border-radius: 5px;
+    color: rgba(6, 24, 44, 0.8);
+    border: 2px rgba(6, 24, 44, 0.4) solid;
+  }
+
+  .addToBasket:hover {
+    cursor: pointer;
+  }
+
+  .loaderContainer {
+    grid-area: button;
+
+    width: 15rem;
+  }
+
+  .loader {
+    border: 2px solid #f3f3f3; /* Light grey */
+    border-top: 2px solid #3498db; /* Blue */
+    border-radius: 50%;
+    height: 2rem;
+    width: 2rem;
+    animation: spin 2s linear infinite;
+    margin: auto;
+    justify-self: center;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   @media screen and (max-width: 800px) {
     .productImageContainer {
       grid-area: img;
-      height: 600px;
       justify-self: center;
     }
 
     .productImage {
-      height: 100%;
     }
 
     .addToBasket {
@@ -139,6 +164,7 @@
     }
     .productPrice {
       justify-self: center;
+      align-self: center;
     }
 
     .productDescription {
@@ -147,10 +173,10 @@
     .productContainer {
       grid-template-columns: 1fr 1fr;
       grid-template-areas:
-        "img img"
         "title title"
-        "description description"
-        "button price";
+        "img img"
+        "button price"
+        "description description";
     }
   }
 </style>

@@ -1,10 +1,10 @@
 <template>
   <div class="footerPageContainer">
     <div class="footerContainer">
-      <p>Created by Alex Cowls</p>
-      <a href="https://github.com/Quermz/vue-webstore">
+      <a href="">Created by Alex Cowls</a>
+      <!-- <a href="https://github.com/Quermz/vue-webstore">
         <i class="fa-brands fa-github"></i>
-      </a>
+      </a> -->
     </div>
   </div>
 </template>
@@ -41,7 +41,7 @@
     display: flex;
     /* background: #f8f9fa; */
     min-height: 3rem;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
   }
 

@@ -1,66 +1,70 @@
 <template>
   <div class="loginPageContainer">
-    <div class="loginContainer">
+    <form class="loginContainer">
       <h4>Create an Account</h4>
-      <input type="text" v-model="email" placeholder="Email Address.." />
-      <input type="text" v-model="username" placeholder="Username.." />
-      <input type="text" v-model="password" placeholder="Password.." />
-      <button @click="createAccount">Create Account</button>
-      <div class="issueBox" v-if="loginIssue">
-        There was an issue with creating your account
+      <div class="issueBox" v-if="creationIssue">
+        Error creating your account!
       </div>
-      <div class="issueBox" v-if="emailIssue">
-        Please check your email address
-      </div>
-    </div>
+      <input
+        type="email"
+        v-model="email"
+        placeholder="Email Address.."
+        required
+        class="textInput"
+      />
+      <input
+        type="text"
+        v-model="username"
+        placeholder="Username.."
+        required
+        class="textInput"
+      />
+      <input
+        type="password"
+        v-model="password"
+        placeholder="Password.."
+        required
+        class="textInput"
+      />
+      <input
+        type="password"
+        v-model="confirmPassword"
+        placeholder="Confirm your password.."
+        required
+        class="textInput"
+      />
+      <input type="submit" @click="createAccount" class="submitButton" />
+    </form>
   </div>
 </template>
 
 <script setup>
   import router from "@/router";
-  import { ref } from "vue";
-  import axios from "axios";
+  import { ref, computed } from "vue";
+
   import { useStore } from "vuex";
-  let store = useStore();
-  let loginIssue = ref(false);
-  let emailIssue = ref(false);
+  const store = useStore();
+
   if (store.state.loggedIn) {
     router.push("/");
   }
 
-  let email = ref("");
-  let username = ref("");
-  let password = ref("");
-  async function createAccount() {
-    if (validateEmail(email.value)) {
-      try {
-        let response = await axios({
-          method: "post",
-          url: "https://cowebstore.herokuapp.com/api/auth/register",
-          data: {
-            username: username.value,
-            email: email.value,
-            password: password.value,
-          },
-        });
-        router.push("/login");
-        console.log(response);
-      } catch (e) {
-        loginIssue.value = true;
-        console.log(e);
-      }
-    } else {
-      emailIssue.value = true;
-    }
-  }
+  const creationIssue = computed(() => {
+    return store.getters.getCreationError;
+  });
 
-  const validateEmail = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
+  const email = ref("");
+  const username = ref("");
+  const password = ref("");
+  const confirmPassword = ref("");
+  async function createAccount() {
+    await store.dispatch("createAccount", {
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      confirmPassword: confirmPassword.value,
+    });
+  }
 </script>
 
 <style scoped></style>
