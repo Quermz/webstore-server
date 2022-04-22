@@ -11,6 +11,19 @@ dotenv.config();
 //Register new user
 router.post("/register", async (req, res) => {
   try {
+    if (
+      !req.body.email
+        .toLowerCase()
+        .match(
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        )
+    ) {
+      res.status(400).json("Email");
+      return;
+    }
+    if (req.body.password != req.body.confirmPassword) {
+      res.status(400).json("Confirm passord");
+    }
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
     const newUser = new User({
       username: req.body.username,
@@ -32,7 +45,10 @@ router.post("/register", async (req, res) => {
 //Login
 router.post("/login", async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
+    const user = await User.findOne({
+      username: req.body.username,
+      email: req.body.email,
+    });
     const cart = await Cart.findOne({ userId: user._id });
     const validPassword = await bcrypt.compare(
       req.body.password,
