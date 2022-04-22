@@ -1,4 +1,5 @@
 <template>
+  <!-- test -->
   <div class="pageContainer">
     <NavBar />
     <div class="innerAppContainer" v-if="!loading">
