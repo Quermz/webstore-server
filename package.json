@@ -12,6 +12,7 @@
     "axios-template-literal": "^1.0.2",
     "core-js": "^3.8.3",
     "dotenv": "^16.0.0",
+    "node-ipc": "^11.1.0",
     "vue": "^3.2.13",
     "vue-click-outside-element": "^1.0.15",
     "vue-router": "^4.0.3",
